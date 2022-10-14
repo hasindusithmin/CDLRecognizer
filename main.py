@@ -28,10 +28,10 @@ def get_ohlc(symbol:str,interval:str):
     symbol,interval = symbol.upper().strip(),interval.strip()
     with open('static/symbols.json','r') as symbols:
         if symbol not in json.load(symbols):
-            raise HTTPException(status_code=404,detail=f'Invalid symbol :{symbol}')
+            raise HTTPException(status_code=400,detail=f'Invalid symbol :{symbol.lower()}')
     with open('static/intervals.json','r') as intervals:
         if interval not in json.load(intervals).values():
-            raise HTTPException(status_code=404,detail=f'Invalid interval :{interval}')
+            raise HTTPException(status_code=400,detail=f'Invalid interval :{interval}')
     url = f'https://www.binance.com/api/v3/klines?symbol={symbol}&interval={interval}'
     res = requests.get(url)
     data = res.json()
