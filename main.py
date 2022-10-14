@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="CDLRecognizeAPI")
+app = FastAPI(title="CDLRecognizeAPI",license_info={'name':'find me on linkedin','url':"https://www.linkedin.com/in/hasindu-sithmin-9a1a12209/"})
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -37,7 +37,15 @@ def gen_candle(dt):
         'close':float(dt[4])
     }
 
-@app.get("/ohlc/{symbol}/{interval}")
+get_ohlc_desc = '''
+## use this endpoint to get candlestick data.
+
+[available symbols](/static/symbols.json)
+
+[available interval](/static/intervals.json)
+'''
+
+@app.get("/ohlc/{symbol}/{interval}",description=get_ohlc_desc)
 def get_ohlc(symbol:str,interval:str):
     symbol,interval = symbol.strip().upper(),interval.strip()
     
@@ -54,7 +62,15 @@ def get_ohlc(symbol:str,interval:str):
     data = res.json()
     return [gen_candle(dt) for dt in data]
 
-@app.get("/pattern/{symbol}/{interval}/{pattern}")
+get_patterns_desc = '''
+[available symbols](/static/symbols.json)
+
+[available interval](/static/intervals.json)
+
+[available patterns](/static/pattern.json)
+'''
+
+@app.get("/pattern/{symbol}/{interval}/{pattern}",description=get_patterns_desc)
 def get_patterns(symbol:str,interval:str,pattern:str):
     symbol,interval,pattern = symbol.strip().upper(),interval.strip(),pattern.strip().upper()
     
