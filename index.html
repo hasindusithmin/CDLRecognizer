@@ -15,10 +15,10 @@
 
 <body>
     <div class="w3-panel">
-        <header class="w3-row w3-theme w3-padding" >
+        <header class="w3-row w3-theme w3-padding w3-light-grey">
             <i onclick="w3_open()" class="fa fa-bars w3-xlarge w3-button w3-theme"></i>
             <div class="w3-center">
-                <h4>CRYPTOCURRENCY CHART</h4>
+                <h4>CRYPTOCURRENCY <span class="w3-tag">CHART</span></h4>
                 <h1 class="w3-xxxlarge w3-animate-bottom w3-text-grey">CRYPTO</h1>
             </div>
         </header>
@@ -48,17 +48,21 @@
             <div class="w3-quarter">.</div>
             <div class="w3-half w3-center">
                 <hr>
-                <h4 class="w3-center">PATTERNS</h4>
+                <h4 class="w3-center">CANDLESTICK <span class="w3-tag">PATTERNS</span></h4>
                 <hr>
                 <input id="pattern" name="pattern" type="search" dir="ltr" spellcheck=false autocorrect="off"
-                        autocomplete="off" autocapitalize="off" maxlength="2048" tabindex="1" required>
+                    autocomplete="off" autocapitalize="off" maxlength="2048" tabindex="1" required>
                 <hr>
             </div>
             <div class="w3-quarter">.</div>
         </div>
+        <footer class="w3-row w3-light-grey" style="padding:32px">
+            <a href="#" class="w3-button w3-black w3-padding-large w3-margin-bottom"><i
+                    class="fa fa-arrow-up w3-margin-right"></i>To the top</a>
+        </footer>
     </div>
     <script>
-        let chart,patterns;
+        let series, patterns;
         function createChart(data) {
             document.getElementById('chart').innerHTML = ''
             const chartContainer = document.getElementById('chart');
@@ -95,28 +99,35 @@
                 if (entries.length === 0 || entries[0].target !== chartContainer) { return; }
                 const newRect = entries[0].contentRect;
                 chart.applyOptions({ height: newRect.height, width: newRect.width });
-              }).observe(chartContainer);
-            
+            }).observe(chartContainer);
+
             const candleSeries = chart.addCandlestickSeries({
                 upColor: '#00ff00',
-                downColor: '#ff0000', 
+                downColor: '#ff0000',
                 borderDownColor: 'rgba(255, 144, 0, 1)',
                 borderUpColor: 'rgba(255, 144, 0, 1)',
                 wickDownColor: 'rgba(255, 144, 0, 1)',
                 wickUpColor: 'rgba(255, 144, 0, 1)',
             });
-            
+
             candleSeries.setData(data);
 
-            return chart;
-            
+            return candleSeries;
+
         }
-        window.addEventListener('DOMContentLoaded', async(event) => {
+
+        function save_session(symbol, interval) {
+            sessionStorage.setItem('symbol', symbol)
+            sessionStorage.setItem('interval', interval)
+        }
+        //ONLOAD===========================================
+        window.addEventListener('DOMContentLoaded', async (event) => {
             console.log('DOM fully loaded and parsed');
-            const url = `/ohlc/btcusdt/1d`;
+            save_session('btcusdt', '1d');
+            const url = `/static/btc1d.json`;
             const res = await fetch(url);
             const ohlc = await res.json();
-            chart =  createChart(ohlc)
+            series = createChart(ohlc)
         });
         //Auto Complete
         //===================================================
@@ -140,7 +151,7 @@
             }
 
         });
-        
+
         fetch('/static/symbols.json')
             .then(res => res.json())
             .then(data => {
@@ -164,7 +175,7 @@
 
                 });
             })
-            fetch('/static/pattern.json')
+        fetch('/static/pattern.json')
             .then(res => res.json())
             .then(data => {
                 patterns = data;
@@ -189,25 +200,42 @@
                 });
             })
 
-            //====================================================
+        //====================================================
 
-        document.getElementById('myForm').onsubmit = async(e) => {
+        document.getElementById('myForm').onsubmit = async (e) => {
             e.preventDefault();
             const symbol = e.target.symbol.value;
             const interval = intervals[e.target.interval.value];
+            save_session(symbol, interval);
             const url = `/ohlc/${symbol}/${interval}`;
             const res = await fetch(url);
             const ohlc = await res.json();
-            chart = createChart(ohlc)
+            series = createChart(ohlc)
         }
 
-        document.getElementById('pattern').onchange = e => {
+        document.getElementById('pattern').onchange = async (e) => {
+            const markers = []
             const pattern = patterns[e.target.value];
+            const symbol = sessionStorage.getItem('symbol');
+            const interval = sessionStorage.getItem('interval');
+            const url = `/pattern/${symbol}/${interval}/${pattern}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            const bullish = data['bullish'];
+            const bearish = data['bearish'];
+            if (bullish.length > 0) {
+                for (time of bullish) {
+                    markers.push({ time: time, position: 'belowBar', color: '#2196F3', shape: 'arrowUp', text: 'bull' });
+                }
+            }
+            if (bearish.length > 0) {
+                for (time of bearish) {
+                    markers.push({ time: time, position: 'aboveBar', color: '#e91e63', shape: 'arrowDown', text: 'bear' });
+                }
+            }
+            series.setMarkers(markers)
         }
-        
 
-
-        
 
     </script>
 </body>
