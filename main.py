@@ -1,6 +1,9 @@
 import numpy as np
 from fastapi import FastAPI,HTTPException
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+
 
 
 app = FastAPI(title="CDLRecognizeAPI")
@@ -15,5 +18,13 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    raise HTTPException(status_code=200)
+    return FileResponse('index.html')
+
+app.mount('/',StaticFiles(directory='static'),name='static')
+
+
+
+
+
+    
 
