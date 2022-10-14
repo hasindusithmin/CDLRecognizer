@@ -51,7 +51,7 @@ def get_ohlc(symbol:str,interval:str):
     return [gen_candle(dt) for dt in data]
 
 @app.get("/pattern/{symbol}/{interval}/{pattern}")
-def get_ohlc(symbol:str,interval:str,pattern:str):
+def get_patterns(symbol:str,interval:str,pattern:str):
     symbol,interval,pattern = symbol.strip().upper(),interval.strip(),pattern.strip().upper()
     
     with open('static/symbols.json','r') as symbols:

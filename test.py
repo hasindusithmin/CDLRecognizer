@@ -1,5 +1,7 @@
-
+import talib
 import requests
+import numpy as np
+
 
 res = requests.get('https://cdlrecognizer.deta.dev/ohlc/btcusdt/5m')
 data = res.json()
@@ -13,8 +15,7 @@ for dt in data:
     close.append(dt['close'])
 
 
-import talib
-import numpy as np
+
 
 result =  talib.CDLDOJISTAR(open=np.array(open),high=np.array(high),low=np.array(low),close=np.array(close))
 
