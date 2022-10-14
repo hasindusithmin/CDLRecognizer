@@ -16,3 +16,4 @@ app.add_middleware(
 @app.get("/")
 def root():
     raise HTTPException(status_code=200)
+
