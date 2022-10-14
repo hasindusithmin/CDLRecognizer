@@ -1,2 +1,3 @@
 fastapi
 ta-lib-bin
+requests

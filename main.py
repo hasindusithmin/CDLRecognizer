@@ -1,4 +1,5 @@
 import json
+import requests
 import numpy as np
 from fastapi import FastAPI,HTTPException
 from fastapi.responses import FileResponse
@@ -24,6 +25,28 @@ app.mount('/static',StaticFiles(directory='static'),name='static')
 def root():
     return FileResponse('index.html')
 
+def gen_candle(dt):
+    return {
+        'time':int(dt[0]/1000)+19800,
+        'open':float(dt[1]),
+        'high':float(dt[2]),
+        'low':float(dt[3]),
+        'close':float(dt[4])
+    }
+
+@app.get("/ohlc/{symbol}/{interval}")
+def get_ohlc(symbol:str,interval:str):
+    symbol,interval = symbol.upper().strip(),interval.strip()
+    with open('static/symbols.json','r') as symbols:
+        if symbol not in json.load(symbols):
+            raise HTTPException(status_code=404,detail=f'invalid symbol :{symbol}')
+    with open('static/intervals.json','r') as intervals:
+        if interval not in json.load(intervals).values():
+            raise HTTPException(status_code=404,detail=f'invalid interval :{interval}')
+    url = f'https://www.binance.com/api/v3/klines?symbol={symbol}&interval={interval}'
+    res = requests.get(url)
+    data = res.json()
+    return [gen_candle(dt) for dt in data]
 
 
 
