@@ -1,18 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.7/dist/autoComplete.min.js"></script>
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.7/dist/css/autoComplete.02.min.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <script src="/static/lightweight-charts.standalone.production.js"></script>
 </head>
+
 <body>
+    <div class="w3-panel">
+        <header class="w3-row w3-theme w3-padding" >
+            <i onclick="w3_open()" class="fa fa-bars w3-xlarge w3-button w3-theme"></i>
+            <div class="w3-center">
+                <h4>CRYPTOCURRENCY CHART</h4>
+                <h1 class="w3-xxxlarge w3-animate-bottom w3-text-grey">CRYPTO</h1>
+            </div>
+        </header>
+        <div class="w3-row">
+            <div class="w3-quarter">.</div>
+            <div class="w3-half w3-center">
+                <form id="myForm">
+                    <hr>
+                    <input id="asset" name="symbol" type="search" dir="ltr" spellcheck=false autocorrect="off"
+                        autocomplete="off" autocapitalize="off" maxlength="2048" tabindex="1" required>
+                    <hr>
+                    <input id="timeframe" name="interval" type="search" dir="ltr" spellcheck=false autocorrect="off"
+                        autocomplete="off" autocapitalize="off" maxlength="2048" tabindex="1" required>
+                    <hr>
+                    <button type="submit" class="w3-button w3-blue">Click</button>
+                    <hr>
+                </form>
+            </div>
+            <div class="w3-quarter">.</div>
+        </div>
+        <div class="w3-row">
+            <div class="w3-quarter">.</div>
+            <div class="w3-half" id="chart">.</div>
+            <div class="w3-quarter">.</div>
+        </div>
+    </div>
     <script>
-        fetch('/pattern.json')
-            .then(res=>res.json())
-            .then(data=>{
-                console.log(data)
+        function createChart(data) {
+            document.getElementById('chart').innerHTML = ''
+            const chartContainer = document.getElementById('chart');
+
+            const chart = LightweightCharts.createChart(chartContainer, {
+                width: 1000,
+                height: 500,
+                layout: {
+                    backgroundColor: '#000000',
+                    textColor: 'rgba(255, 255, 255, 0.9)',
+                },
+                grid: {
+                    vertLines: {
+                        color: 'rgba(197, 203, 206, 0.5)',
+                    },
+                    horzLines: {
+                        color: 'rgba(197, 203, 206, 0.5)',
+                    },
+                },
+                crosshair: {
+                    mode: LightweightCharts.CrosshairMode.Normal,
+                },
+                priceScale: {
+                    borderColor: 'rgba(197, 203, 206, 0.8)',
+                },
+                timeScale: {
+                    borderColor: 'rgba(197, 203, 206, 0.8)',
+                    timeVisible: true,
+                    secondsVisible: false,
+                },
+            });
+
+            new ResizeObserver(entries => {
+                if (entries.length === 0 || entries[0].target !== chartContainer) { return; }
+                const newRect = entries[0].contentRect;
+                chart.applyOptions({ height: newRect.height, width: newRect.width });
+              }).observe(chartContainer);
+            
+            const candleSeries = chart.addCandlestickSeries({
+                upColor: '#00ff00',
+                downColor: '#ff0000', 
+                borderDownColor: 'rgba(255, 144, 0, 1)',
+                borderUpColor: 'rgba(255, 144, 0, 1)',
+                wickDownColor: 'rgba(255, 144, 0, 1)',
+                wickUpColor: 'rgba(255, 144, 0, 1)',
+            });
+            
+            candleSeries.setData(data);
+            
+        }
+        const intervals = { '1 second': '1s', '1 minute': '1m', '3 minutes': '3m', '5 minutes': '5m', '15 minutes': '15m', '30 minutes': '30m', '1 hour': '1h', '2 hours': '2h', '4 hours': '4h', '6 hours': '6h', '8 hours': '8h', '12 hours': '12h', '1 day': '1d', '3 days': '3d', '1 week': '1w', '1 month': '1M' }
+        const autoCompleteJS = new autoComplete({
+            selector: "#timeframe",
+            placeHolder: "Search for timeframe ...",
+            data: {
+                src: Object.keys(intervals)
+            },
+            resultItem: {
+                highlight: true,
+            },
+            events: {
+                input: {
+                    selection: (event) => {
+                        const selection = event.detail.selection.value;
+                        autoCompleteJS.input.value = selection;
+                    }
+                }
+            }
+
+        });
+
+        fetch('/static/symbols.json')
+            .then(res => res.json())
+            .then(data => {
+                const autoCompleteJS = new autoComplete({
+                    selector: "#asset",
+                    placeHolder: "Search for crypto ...",
+                    data: {
+                        src: data
+                    },
+                    resultItem: {
+                        highlight: true,
+                    },
+                    events: {
+                        input: {
+                            selection: (event) => {
+                                const selection = event.detail.selection.value;
+                                autoCompleteJS.input.value = selection;
+                            }
+                        }
+                    }
+
+                });
             })
+
+        document.getElementById('myForm').onsubmit = async(e) => {
+            e.preventDefault();
+            const symbol = e.target.symbol.value;
+            const interval = intervals[e.target.interval.value];
+            const url = `/ohlc/${symbol}/${interval}`;
+            const res = await fetch(url);
+            const ohlc = await res.json();
+            createChart(ohlc)
+        }
+
     </script>
 </body>
+
 </html>
