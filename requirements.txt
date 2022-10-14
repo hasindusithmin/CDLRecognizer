@@ -1,0 +1,2 @@
+fastapi
+ta-lib-bin
