@@ -1,3 +1,4 @@
+import json
 import numpy as np
 from fastapi import FastAPI,HTTPException
 from fastapi.responses import FileResponse
@@ -16,11 +17,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.mount('/static',StaticFiles(directory='static'),name='static')
+
+
 @app.get("/")
 def root():
     return FileResponse('index.html')
 
-app.mount('/',StaticFiles(directory='static'),name='static')
+
 
 
 
