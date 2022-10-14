@@ -198,9 +198,9 @@ h3s = section.find_all('h3')
 obj = {}
 for h3 in h3s:
     txt = h3.text 
-    key = txt.split('-',1)[0].strip()
-    value = txt.split('-',1)[1].strip()
+    value = txt.split('-',1)[0].strip()
+    key = txt.split('-',1)[1].strip()
     obj.update({key:value})
 import json
-with open('pattern.json','w') as file:
+with open('static/pattern.json','w') as file:
     json.dump(obj,file)

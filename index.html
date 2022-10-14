@@ -44,8 +44,21 @@
             <div class="w3-half" id="chart">.</div>
             <div class="w3-quarter">.</div>
         </div>
+        <div class="w3-row w3-theme w3-padding">
+            <div class="w3-quarter">.</div>
+            <div class="w3-half w3-center">
+                <hr>
+                <h4 class="w3-center">PATTERNS</h4>
+                <hr>
+                <input id="pattern" name="pattern" type="search" dir="ltr" spellcheck=false autocorrect="off"
+                        autocomplete="off" autocapitalize="off" maxlength="2048" tabindex="1" required>
+                <hr>
+            </div>
+            <div class="w3-quarter">.</div>
+        </div>
     </div>
     <script>
+        let chart,patterns;
         function createChart(data) {
             document.getElementById('chart').innerHTML = ''
             const chartContainer = document.getElementById('chart');
@@ -94,8 +107,19 @@
             });
             
             candleSeries.setData(data);
+
+            return chart;
             
         }
+        window.addEventListener('DOMContentLoaded', async(event) => {
+            console.log('DOM fully loaded and parsed');
+            const url = `/ohlc/btcusdt/1d`;
+            const res = await fetch(url);
+            const ohlc = await res.json();
+            chart =  createChart(ohlc)
+        });
+        //Auto Complete
+        //===================================================
         const intervals = { '1 second': '1s', '1 minute': '1m', '3 minutes': '3m', '5 minutes': '5m', '15 minutes': '15m', '30 minutes': '30m', '1 hour': '1h', '2 hours': '2h', '4 hours': '4h', '6 hours': '6h', '8 hours': '8h', '12 hours': '12h', '1 day': '1d', '3 days': '3d', '1 week': '1w', '1 month': '1M' }
         const autoCompleteJS = new autoComplete({
             selector: "#timeframe",
@@ -116,7 +140,7 @@
             }
 
         });
-
+        
         fetch('/static/symbols.json')
             .then(res => res.json())
             .then(data => {
@@ -140,6 +164,32 @@
 
                 });
             })
+            fetch('/static/pattern.json')
+            .then(res => res.json())
+            .then(data => {
+                patterns = data;
+                const autoCompleteJS = new autoComplete({
+                    selector: "#pattern",
+                    placeHolder: "Search for pattern ...",
+                    data: {
+                        src: Object.keys(data)
+                    },
+                    resultItem: {
+                        highlight: true,
+                    },
+                    events: {
+                        input: {
+                            selection: (event) => {
+                                const selection = event.detail.selection.value;
+                                autoCompleteJS.input.value = selection;
+                            }
+                        }
+                    }
+
+                });
+            })
+
+            //====================================================
 
         document.getElementById('myForm').onsubmit = async(e) => {
             e.preventDefault();
@@ -148,8 +198,16 @@
             const url = `/ohlc/${symbol}/${interval}`;
             const res = await fetch(url);
             const ohlc = await res.json();
-            createChart(ohlc)
+            chart = createChart(ohlc)
         }
+
+        document.getElementById('pattern').onchange = e => {
+            const pattern = patterns[e.target.value];
+        }
+        
+
+
+        
 
     </script>
 </body>
