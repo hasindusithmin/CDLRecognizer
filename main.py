@@ -22,7 +22,11 @@ app.mount('/static',StaticFiles(directory='static'),name='static')
 
 @app.get("/")
 def root():
-    return FileResponse('index.html')
+    return FileResponse('static/index.html')
+
+@app.get("/test-report")
+def root():
+    return FileResponse('static/report.html')
 
 def gen_candle(dt):
     return {
