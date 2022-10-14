@@ -14,9 +14,6 @@ for dt in data:
     low.append(dt['low'])
     close.append(dt['close'])
 
-
-
-
 result =  talib.CDLDOJISTAR(open=np.array(open),high=np.array(high),low=np.array(low),close=np.array(close))
 
 bullish = [time[li[0]] for li in np.argwhere(result == 100).tolist()]
